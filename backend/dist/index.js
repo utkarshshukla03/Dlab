@@ -11,5 +11,5 @@ const app = (0, express_1.default)();
 app.use("/v1/user", user_1.default);
 app.use("/v1/worker", worker_1.default);
 //postgres + prism=> ORM
-// string of credentials users : postgresql://neondb_owner:npg_0WpzXkvlVI9D@ep-calm-breeze-a4q4ixtu-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+// string of credentials users : key
 app.listen(3000);
