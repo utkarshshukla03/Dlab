@@ -81,7 +81,7 @@ export const NextTask = () => {
                     }
                     // refresh the user balance in the appbar
                 } catch(e) {
-                    console.log(e);
+                    console.error("Something went wrong",e);
                 }
                 setSubmitting(false);
 
