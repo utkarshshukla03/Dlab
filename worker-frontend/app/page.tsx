@@ -1,12 +1,15 @@
+"use client";
 import { Appbar } from "@/components/AppBar";
 import { NextTask } from "@/components/Nexttask";
-// import Image from "next/image";
+import WalletContextProvider from "@/components/WalletContextProvider";
 
 export default function Home() {
   return (
-    <div>
-      <Appbar />
-      <NextTask />
-    </div>
+    <WalletContextProvider>
+      <div>
+        <Appbar />
+        <NextTask />
+      </div>
+    </WalletContextProvider>
   );
 }
