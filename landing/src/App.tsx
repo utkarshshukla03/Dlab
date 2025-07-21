@@ -98,12 +98,22 @@ function App() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-gradient-to-r from-purple-500 to-blue-500 px-12 py-4 rounded-xl font-semibold text-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl">
+              <a 
+                href="https://dlab-user.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-gradient-to-r from-purple-500 to-blue-500 px-12 py-4 rounded-xl font-semibold text-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl text-center inline-block"
+              >
                 For Organizations
-              </button>
-              <button className="bg-gradient-to-r from-blue-500 to-purple-500 px-12 py-4 rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl">
+              </a>
+              <a 
+                href="https://dlab-worker.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-gradient-to-r from-blue-500 to-purple-500 px-12 py-4 rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl text-center inline-block"
+              >
                 For Users
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -285,12 +295,22 @@ function App() {
           </h2>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-purple-500 to-blue-500 px-12 py-5 rounded-xl font-semibold text-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl">
+            <a 
+              href="http://localhost:3001" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-gradient-to-r from-purple-500 to-blue-500 px-12 py-5 rounded-xl font-semibold text-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl text-center inline-block"
+            >
               Start as Organization
-            </button>
-            <button className="bg-gradient-to-r from-blue-500 to-purple-500 px-12 py-5 rounded-xl font-semibold text-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl">
+            </a>
+            <a 
+              href="http://localhost:3002" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-gradient-to-r from-blue-500 to-purple-500 px-12 py-5 rounded-xl font-semibold text-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 glow-button transform hover:scale-105 shadow-2xl text-center inline-block"
+            >
               Start as User
-            </button>
+            </a>
           </div>
         </div>
       </section>
