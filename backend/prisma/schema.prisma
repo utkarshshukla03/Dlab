@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -11,57 +5,71 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Connection URL moved to prisma.config.ts; pass `adapter` for a direct DB connection
+  // or `accelerateUrl` for Accelerate to the PrismaClient constructor as described:
+  // https://pris.ly/d/config-datasource and https://pris.ly/d/prisma7-client-config
 }
 
 model User {
-  id         Int         @id @default(autoincrement())
-  address    String      @unique
-  name       String?
-  tasks      Task[]
+  id      Int       @id @default(autoincrement())
+  address String    @unique
+  name    String?
+  Payouts Payouts[]
+  tasks   Task[]
 }
 
-model Worker{
-  id              Int         @id @default(autoincrement())
-  address         String      @unique
-  submissions     Submission[]
-  balance_id      Int
-  pending_amount  Int 
-  locked_amount   Int
- 
+model Worker {
+  id             Int          @id @default(autoincrement())
+  address        String       @unique
+  pending_amount Int
+  locked_amount  Int?         @default(0)
+  submissions    Submission[]
 }
 
-
-model Task{
-  id          Int         @id @default(autoincrement())
-  title       String      @default("Select the most clickable thing")
-  // Adding more strictness to the schema 
-  options     Options[]
-  signature   String 
-  amount      String
+model Task {
+  id          Int          @id @default(autoincrement())
+  title       String       @default("Select the most clickable thing")
+  signature   String
   user_id     Int
-  user        User        @relation(fields: [user_id], references: [id])
+  done        Boolean      @default(false)
+  amount      Int
+  options     Options[]
+  submissions Submission[]
+  user        User         @relation(fields: [user_id], references: [id])
+}
+
+model Options {
+  id          Int          @id @default(autoincrement())
+  image_url   String
+  task_id     Int
+  task        Task         @relation(fields: [task_id], references: [id])
   submissions Submission[]
 }
 
-model Options{
-  id           Int         @id @default(autoincrement())
-  image_url    String
-  option_id    Int     
-  task_id      Int
-  task         Task         @relation(fields: [task_id], references: [id])
-  submissions  Submission[]
-}
-
-
 model Submission {
-  id            Int          @id @default(autoincrement())
-  worker_id     Int
-  worker        Worker       @relation(fields: [worker_id], references: [id])
-  option_id     Int
-  option        Options      @relation(fields: [option_id], references: [id])
-  task_id       Int
-  task          Task         @relation(fields: [task_id], references: [id])
-  amount        String
+  id        Int     @id @default(autoincrement())
+  worker_id Int
+  option_id Int
+  task_id   Int
+  amount    Int
+  option    Options @relation(fields: [option_id], references: [id])
+  task      Task    @relation(fields: [task_id], references: [id])
+  worker    Worker  @relation(fields: [worker_id], references: [id])
+
+  @@unique([worker_id, task_id])
 }
 
+model Payouts {
+  id        Int       @id @default(autoincrement())
+  user_id   Int
+  amount    Int
+  signature String
+  status    TxnStatus
+  User      User      @relation(fields: [user_id], references: [id])
+}
+
+enum TxnStatus {
+  Processing
+  Success
+  Failure
+}

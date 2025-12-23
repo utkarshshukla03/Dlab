@@ -8,51 +8,144 @@ export function UploadImage({ onImageAdded, image }: {
     image?: string;
 }) {
     const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    async function uploadWithRetry(uploadFn: () => Promise<void>, maxRetries = 3) {
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                await uploadFn();
+                return;
+            } catch (error) {
+                console.error(`Upload attempt ${i + 1} failed:`, error);
+                if (i === maxRetries - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+            }
+        }
+    }
 
     async function onFileSelect(e: any) {
         setUploading(true);
+        setError(null);
         try {
             const file = e.target.files[0];
-            const response = await axios.get(`${BACKEND_URL}/v1/user/presignedUrl`, {
-                headers: {
-                    "Authorization": localStorage.getItem("token")
-                }
-            });
-            const presignedUrl = response.data.preSignedUrl;
-            const formData = new FormData();
-            formData.set("bucket", response.data.fields["bucket"])
-            formData.set("X-Amz-Algorithm", response.data.fields["X-Amz-Algorithm"]);
-            formData.set("X-Amz-Credential", response.data.fields["X-Amz-Credential"]);
-            formData.set("X-Amz-Algorithm", response.data.fields["X-Amz-Algorithm"]);
-            formData.set("X-Amz-Date", response.data.fields["X-Amz-Date"]);
-            formData.set("key", response.data.fields["key"]);
-            formData.set("Policy", response.data.fields["Policy"]);
-            formData.set("X-Amz-Signature", response.data.fields["X-Amz-Signature"]);
-            formData.set("X-Amz-Algorithm", response.data.fields["X-Amz-Algorithm"]);
-            formData.append("file", file);
-            const awsResponse = await axios.post(presignedUrl, formData);
+            
+            if (!file) {
+                setUploading(false);
+                return;
+            }
 
-            onImageAdded(`${CLOUDFRONT_URL}/${response.data.fields["key"]}`);
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                setError('File size must be less than 5MB');
+                setUploading(false);
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                setError('Please select an image file');
+                setUploading(false);
+                return;
+            }
+            
+            // Check if user is authenticated
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setError('Please connect your wallet and sign in first!');
+                setUploading(false);
+                return;
+            }
+
+            console.log('Getting presigned URL for upload...');
+
+            await uploadWithRetry(async () => {
+                // Get presigned URL from backend
+                const presignedResponse = await axios.get(`${BACKEND_URL}/v1/user/presignedUrl`, {
+                    headers: {
+                        "Authorization": token
+                    }
+                });
+
+                console.log('Presigned URL response:', presignedResponse.data);
+
+                const { preSignedUrl, fields, cloudFrontUrl } = presignedResponse.data;
+
+                // Create FormData for S3 upload
+                const formData = new FormData();
+                Object.keys(fields).forEach(key => {
+                    formData.append(key, fields[key]);
+                });
+                formData.append('file', file);
+
+                console.log('Uploading directly to S3...');
+                
+                // Upload to S3 using presigned URL
+                await axios.post(preSignedUrl, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                console.log('Upload successful! CloudFront URL:', cloudFrontUrl);
+                
+                // Use CloudFront URL for displaying the image
+                onImageAdded(cloudFrontUrl);
+            });
+            
+            setUploading(false);
         } catch(e) {
-            console.log(e)
+            console.error('Upload failed:', e);
+            if (axios.isAxiosError(e)) {
+                if (e.response?.status === 403) {
+                    setError('Upload authentication failed. Please reconnect your wallet.');
+                } else if (e.response?.status === 404) {
+                    setError('Upload failed: Bucket not found.');
+                } else if (e.response?.status === 429) {
+                    setError('Too many requests. Please try again later.');
+                } else {
+                    setError(`Upload failed: ${e.response?.data?.error || e.message}`);
+                }
+            } else {
+                setError('Upload failed with unknown error.');
+            }
+            setUploading(false);
         }
-        setUploading(false);
     }
 
     if (image) {
-        return <img className={"p-2 w-96 rounded"} src={image} />
+        return <img className={"p-2 w-96 rounded"} src={image} alt="Uploaded" />
     }
 
-    return <div>
-        <div className="w-40 h-40 rounded border text-2xl cursor-pointer">
-                <div className="h-full flex justify-center flex-col relative w-full">
-                    <div className="h-full flex justify-center w-full pt-16 text-4xl">
-                    {uploading ? <div className="text-sm">Loading...</div> : <>
-                        +
-                        <input className="w-full h-full bg-red-400 w-40 h-40" type="file" style={{position: "absolute", opacity: 0, top: 0, left: 0, bottom: 0, right: 0, width: "100%", height: "100%"}} onChange={onFileSelect} />
-                    </>}
+    return (
+        <div className="flex justify-center">
+            <div className="relative group cursor-pointer">
+                {error && (
+                    <div className="absolute -top-16 left-0 right-0 bg-red-500 text-white text-sm p-2 rounded-lg z-10">
+                        {error}
+                    </div>
+                )}
+                <div className="w-32 h-32 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center group-hover:border-blue-400 group-hover:bg-blue-50 transition-all">
+                    {uploading ? (
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                            <div className="text-sm text-gray-500">Uploading...</div>
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <div className="text-4xl text-gray-400 mb-2 group-hover:text-blue-500 transition-colors">+</div>
+                            <div className="text-sm text-gray-500 group-hover:text-blue-600">Add Image</div>
+                        </div>
+                    )}
                 </div>
+                {!uploading && (
+                    <input 
+                        type="file" 
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        onChange={onFileSelect} 
+                    />
+                )}
             </div>
         </div>
-    </div>
+    );
 }

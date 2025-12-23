@@ -3,6 +3,12 @@ import React, { useMemo, ReactNode } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { 
+    PhantomWalletAdapter,
+    SolflareWalletAdapter,
+    TorusWalletAdapter,
+    LedgerWalletAdapter
+} from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 
 // Default styles that can be overridden by your app
@@ -16,9 +22,10 @@ export default function WalletContextProvider({ children }: { children: ReactNod
 
   const wallets = useMemo(
     () => [
-      // You can add specific wallet adapters here if needed
-      // new PhantomWalletAdapter(),
-      // new SolflareWalletAdapter(),
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new TorusWalletAdapter(),
+      new LedgerWalletAdapter()
     ],
     [network]
   );

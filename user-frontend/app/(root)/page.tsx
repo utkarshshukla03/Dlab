@@ -11,9 +11,7 @@ export default function Home() {
   return (
     <main>
       <Appbar />
-      <Hero />
       <Upload />
-   
     </main>
   );
 }

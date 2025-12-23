@@ -14,10 +14,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma_1 = require("../generated/prisma");
-const JWT_SECRET = "Utkarsh123;";
+const client_1 = require("@prisma/client");
+const client_s3_1 = require("@aws-sdk/client-s3");
+const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
+const __1 = require("..");
+const middleware_1 = require("./middleware");
+const s3Client = new client_s3_1.S3Client();
 const router = (0, express_1.Router)();
-const prismaClient = new prisma_1.PrismaClient();
+const prismaClient = new client_1.PrismaClient();
+router.get("/presignedUrl", middleware_1.authMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const userId = req.userId;
+    const command = new client_s3_1.PutObjectCommand({
+        Bucket: "utkarsh-cms",
+        Key: `/pro/${userId}`
+    });
+    const preSignedUrl = yield (0, s3_request_presigner_1.getSignedUrl)(s3Client, command, {
+        expiresIn: 3600 // 1 hour
+    });
+}));
 // signin with wallet 
 // signing message
 router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -31,7 +46,7 @@ router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function*
     if (existinguser) {
         const token = jsonwebtoken_1.default.sign({
             userId: existinguser.id,
-        }, JWT_SECRET);
+        }, __1.JWT_SECRET);
         res.json({
             token
         });
@@ -44,7 +59,7 @@ router.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
         const token = jsonwebtoken_1.default.sign({
             userId: user.id,
-        }, JWT_SECRET);
+        }, __1.JWT_SECRET);
         res.json({
             token
         });
