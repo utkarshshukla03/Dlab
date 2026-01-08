@@ -250,6 +250,35 @@ router.post("/submission", authMiddleware, async (req, res): Promise<void> => {
   }
 });
 
+// Get worker balance
+router.get("/balance", authMiddleware, async (req, res): Promise<void> => {
+  try {
+    // @ts-ignore
+    const workerId = req.userId;
+
+    const worker = await prismaClient.worker.findUnique({
+      where: { id: workerId }
+    });
+
+    if (!worker) {
+      res.status(404).json({ error: "Worker not found" });
+      return;
+    }
+
+    const balanceSOL = (worker.pending_amount / 1000000000).toFixed(2);
+
+    res.json({
+      balance: balanceSOL,
+      pending_amount: worker.pending_amount,
+      address: worker.address
+    });
+
+  } catch (error) {
+    console.error("Error fetching balance:", error);
+    res.status(500).json({ error: "Failed to fetch balance" });
+  }
+});
+
 // Handle payout request
 router.post("/payout", authMiddleware, async (req, res): Promise<void> => {
   try {

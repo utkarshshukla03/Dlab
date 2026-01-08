@@ -84,7 +84,7 @@ export const Appbar = () => {
                 try {
                     const token = localStorage.getItem('token');
                     console.log('Fetching user tasks...');
-                    const response = await axios.get(`${BACKEND_URL}/v1/user/task`, {
+                    const response = await axios.get(`${BACKEND_URL}/v1/user/tasks`, {
                         headers: { Authorization: token }
                     });
                     console.log('User tasks fetched:', response.data);
@@ -103,29 +103,28 @@ export const Appbar = () => {
         console.log('User disconnected and token cleared');
     };
 
-    const navigateToLatestTask = () => {
+    const navigateToAllTasks = () => {
         if (userTasks.length > 0) {
-            const latestTask = userTasks[userTasks.length - 1];
-            router.push(`/task/${latestTask.id}`);
+            router.push(`/tasks`);
         } else {
             alert('You have no tasks yet. Create one first!');
         }
     };
 
     if (!mounted) {
-        return <div className="w-32 h-10 bg-gray-700 rounded animate-pulse"></div>;
+        return <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>;
     }
 
     return (
-        <div className="flex justify-between border-b border-gray-800 pb-4 pt-4 bg-black shadow-sm">
-            <div className="text-2xl pl-6 flex justify-center pt-2 font-bold text-white">
+        <div className="flex justify-between border-b border-gray-200 pb-4 pt-4 bg-white shadow-sm">
+            <div className="text-2xl pl-6 flex justify-center pt-2 font-bold text-gray-800">
                 DLab - Create Tasks • Get Insights
             </div>
             <div className="text-xl pr-4 flex items-center gap-4">
                 {authenticated && (
                     <button
-                        onClick={navigateToLatestTask}
-                        className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={navigateToAllTasks}
+                        className="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={userTasks.length === 0}
                     >
                         📊 View Analysis {userTasks.length > 0 && `(${userTasks.length})`}

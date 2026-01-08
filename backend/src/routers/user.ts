@@ -85,6 +85,36 @@ router.post("/task", authMiddleware, async (req, res): Promise<void> => {
   }
 });
 
+// Get all tasks for the authenticated user
+router.get("/tasks", authMiddleware, async (req, res): Promise<void> => {
+  try {
+    // @ts-ignore
+    const userId = req.userId;
+
+    const tasks = await prismaClient.task.findMany({
+      where: {
+        user_id: userId
+      },
+      include: {
+        options: {
+          include: {
+            submissions: true
+          }
+        }
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    });
+
+    res.json(tasks);
+
+  } catch (error) {
+    console.error("Error fetching user tasks:", error);
+    res.status(500).json({ error: "Failed to fetch user tasks" });
+  }
+});
+
 // Get task details and results
 router.get("/task", authMiddleware, async (req, res): Promise<void> => {
   try {
